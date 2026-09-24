@@ -22,3 +22,8 @@ polyconv = "polyconv.cli.main:main"
 [project.urls]
 Homepage = "https://github.com/Evirir/polygon-convert"
 Issues = "https://github.com/Evirir/polygon-convert/issues"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4,<9",
+]

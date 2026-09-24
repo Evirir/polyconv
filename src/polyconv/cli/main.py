@@ -17,25 +17,40 @@ def make_parser() -> ArgumentParser:
     parser.add_argument(
         "--out",
         "-o",
-        type=str,
+        type=Path,
         default=None,
         help="Path to the output folder. Defaults to "
         f"<polygon_path>/{DEFAULT_OUT_DIR}.",
     )
+    parser.add_argument(
+        "--output-only",
+        metavar="SUBSTRING",
+        help="Also extract tests whose group contains SUBSTRING into CMS OutputOnly "
+        "dataset and attachment archives.",
+    )
+    parser.add_argument(
+        "--samples",
+        metavar="GROUP",
+        help="Also extract tests whose group exactly matches GROUP into samples.zip.",
+    )
     return parser
 
 
-def generate_test_data(args: Namespace):
+def generate_test_data(args: Namespace) -> None:
     """Generate test data and score parameters for CMS from Polygon tests."""
     polygon_path = Path(args.polygon_path).resolve()
     score_params = generate_cms_tests(
-        polygon_path, output_path=args.out, overwrite=args.force
+        polygon_path,
+        output_path=args.out,
+        overwrite=args.force,
+        output_only=args.output_only,
+        samples=args.samples,
     )
     print(f"CMS Score Parameters:\n{score_params}")
 
 
-def main():
-    """Main function to run the CLI."""
+def main() -> None:
+    """Run the polyconv CLI."""
     try:
         parser = make_parser()
         args = parser.parse_args()
