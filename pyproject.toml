@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "polyconv"
-version = "1.0.4"
+version = "1.1.0rc1"
 authors = [{ name = "Evirir", email = "gojunxing@gmail.com" }]
 description = "Convert Polygon packages to other formats, notably to CMS."
 readme = "README.md"
