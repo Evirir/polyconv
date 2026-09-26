@@ -7,16 +7,17 @@ from zipfile import ZipFile
 
 import pytest
 
-from polyconv.cli.main import make_parser
+from polyconv.cli.main import generate_test_data, make_parser
 from polyconv.test_data import generate_cms_tests
 from polyconv.test_data.test_data import (
     extract_output_only_tests,
+    get_output_only_score_params,
     select_output_only_tests,
 )
 
 
-@pytest.fixture
-def polygon_path(tmp_path: Path) -> Path:
+@pytest.fixture(name="polygon_path")
+def fixture_polygon_path(tmp_path: Path) -> Path:
     """Create a self-contained Polygon package with mixed scoring policies."""
     polygon_path = tmp_path / "polygon"
     tests_path = polygon_path / "tests"
@@ -89,6 +90,18 @@ def test_output_only_selection_allows_more_than_100_tests() -> None:
     assert len(selected) == 101
 
 
+def test_output_only_score_params_use_one_subtask_per_test() -> None:
+    """Preserve each selected test's points in a one-test GroupMin subtask."""
+    selected_tests = [
+        ("03", ET.Element("test", group="first-OO", points="12")),
+        ("12", ET.Element("test", group="second-OO", points="18")),
+    ]
+
+    score_params = get_output_only_score_params(selected_tests)
+
+    assert json.loads(score_params) == [[12, 1], [18, 1]]
+
+
 def test_output_only_numbering_continues_past_99(tmp_path: Path) -> None:
     """Keep two-digit minimum padding without limiting larger indexes."""
     polygon_path = tmp_path / "polygon"
@@ -115,7 +128,7 @@ def test_generate_mixed_batch_and_output_only_archives(
     """Keep OO tests in Batch and create both OutputOnly archive formats."""
     output_path = tmp_path / "cms_out"
 
-    score_params = generate_cms_tests(
+    score_params, output_only_score_params = generate_cms_tests(
         polygon_path,
         output_path=output_path,
         output_only="OO",
@@ -152,6 +165,29 @@ def test_generate_mixed_batch_and_output_only_archives(
         ".*_(s1|s1-OO|s2|s3|sample)",
     ]
     assert (output_path / "score_params.txt").read_text() == score_params
+    assert json.loads(output_only_score_params) == [[30, 1]]
+    assert (
+        output_path / "output_only_score_params.txt"
+    ).read_text() == output_only_score_params
+
+
+def test_cli_outputs_both_score_params(
+    tmp_path: Path, polygon_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Print separate Batch and OutputOnly score parameters when requested."""
+    output_path = tmp_path / "cms_out"
+    args = make_parser().parse_args(
+        [str(polygon_path), "--out", str(output_path), "--output-only", "OO"]
+    )
+
+    generate_test_data(args)
+
+    assert capsys.readouterr().out == (
+        'CMS Batch Score Parameters:\n[[0, ".*_(s1|s1-OO)"], '
+        '[30, ".*3_s1-OO"], [30, ".*_(s2)"], '
+        '[40, ".*_(s1|s1-OO|s2|s3|sample)"], [0, ".*_(sample)"]]\n'
+        "CMS OutputOnly Score Parameters:\n[[30, 1]]\n"
+    )
 
 
 def test_generate_samples_for_batch_without_output_only(
@@ -160,7 +196,9 @@ def test_generate_samples_for_batch_without_output_only(
     """Create exact-group samples independently of OutputOnly extraction."""
     output_path = tmp_path / "cms_out"
 
-    generate_cms_tests(polygon_path, output_path=output_path, samples="sample")
+    _, output_only_score_params = generate_cms_tests(
+        polygon_path, output_path=output_path, samples="sample"
+    )
 
     with ZipFile(output_path / "samples.zip") as archive:
         assert set(archive.namelist()) == {
@@ -168,8 +206,10 @@ def test_generate_samples_for_batch_without_output_only(
             for kind in ("input", "output")
             for test_id in range(1, 3)
         }
+    assert output_only_score_params is None
     assert not (output_path / "output_only.zip").exists()
     assert not (output_path / "attachment.zip").exists()
+    assert not (output_path / "output_only_score_params.txt").exists()
 
 
 def test_output_only_substring_must_match_a_group(

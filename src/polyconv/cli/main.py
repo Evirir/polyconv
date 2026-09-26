@@ -39,14 +39,16 @@ def make_parser() -> ArgumentParser:
 def generate_test_data(args: Namespace) -> None:
     """Generate test data and score parameters for CMS from Polygon tests."""
     polygon_path = Path(args.polygon_path).resolve()
-    score_params = generate_cms_tests(
+    score_params, output_only_score_params = generate_cms_tests(
         polygon_path,
         output_path=args.out,
         overwrite=args.force,
         output_only=args.output_only,
         samples=args.samples,
     )
-    print(f"CMS Score Parameters:\n{score_params}")
+    print(f"CMS Batch Score Parameters:\n{score_params}")
+    if output_only_score_params is not None:
+        print(f"CMS OutputOnly Score Parameters:\n{output_only_score_params}")
 
 
 def main() -> None:

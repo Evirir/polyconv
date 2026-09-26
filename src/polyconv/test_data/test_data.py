@@ -26,6 +26,7 @@ OUTPUT_ONLY_ATTACHMENT_INPUT_TEMPLATE = Template("input_$id.txt")
 DEFAULT_GROUPS_REGEX = Template(".*_($groups)")
 DEFAULT_EACH_TEST_REGEX = Template(".*${id}_$group")
 DEFAULT_SCORE_PARAMS_FILENAME = "score_params.txt"
+DEFAULT_OUTPUT_ONLY_SCORE_PARAMS_FILENAME = "output_only_score_params.txt"
 
 
 def dfs(dependencies: dict[str, set[str]], visited: set[str], group: str) -> None:
@@ -303,13 +304,23 @@ def get_score_params(
     return json.dumps(score_params)
 
 
+def get_output_only_score_params(
+    selected_tests: list[tuple[str, ET.Element]],
+) -> str:
+    """Return one CMS GroupMin subtask per selected OutputOnly testcase."""
+    score_params = [
+        [int(float(test.get("points", 0))), 1] for _, test in selected_tests
+    ]
+    return json.dumps(score_params)
+
+
 def generate_cms_tests(
     polygon_path: Path,
     output_path: Path | str | None = None,
     overwrite: bool = False,
     output_only: str | None = None,
     samples: str | None = None,
-) -> str:
+) -> tuple[str, str | None]:
     """Generate CMS Batch files and optional OutputOnly and samples archives.
 
     Args:
@@ -320,7 +331,7 @@ def generate_cms_tests(
         samples: Exact group name selecting tests for the samples archive.
 
     Returns:
-        The CMS GroupMin score parameters string.
+        The Batch score parameters and optional OutputOnly score parameters.
     """
     if output_path is None:
         output_path = polygon_path / DEFAULT_OUT_DIR
@@ -356,4 +367,16 @@ def generate_cms_tests(
     ) as file:
         file.write(score_params)
 
-    return score_params
+    output_only_score_params = None
+    if selected_output_only_tests is not None:
+        output_only_score_params = get_output_only_score_params(
+            selected_output_only_tests
+        )
+        with open(
+            output_path / DEFAULT_OUTPUT_ONLY_SCORE_PARAMS_FILENAME,
+            "w",
+            encoding="utf-8",
+        ) as file:
+            file.write(output_only_score_params)
+
+    return score_params, output_only_score_params
