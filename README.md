@@ -26,5 +26,5 @@ This code uses `problem.xml` in the Polygon **full** package (either Windows or 
   - `attachment.zip`, using input-only `input_XX.txt` names.
   - `output_only_score_params.txt`, with one GroupMin subtask per output file using that test's Polygon points.
   - Matching tests are ordered by their original Polygon test number and renumbered from `00`. IDs are padded to the selected test count's width, with a minimum of two digits.
-- To also create `samples.zip`, pass `--samples GROUP`. This uses exact group matching and preserves converted Batch names such as `input.01_sample.txt` and `output.01_sample.txt`.
+- To also create `samples.zip`, pass `--samples GROUP`. This uses exact group matching and renames the selected tests sequentially as `input.01.txt`, `output.01.txt`, and so on.
 - The Batch score parameters and, when requested, OutputOnly score parameters will also be output to standard output.

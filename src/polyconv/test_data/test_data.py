@@ -23,6 +23,8 @@ DEFAULT_CMS_OUTPUT_TEMPLATE = Template("output.${id}_$group.txt")
 OUTPUT_ONLY_INPUT_TEMPLATE = Template("input.$id")
 OUTPUT_ONLY_OUTPUT_TEMPLATE = Template("output.$id")
 OUTPUT_ONLY_ATTACHMENT_INPUT_TEMPLATE = Template("input_$id.txt")
+SAMPLE_INPUT_TEMPLATE = Template("input.$id.txt")
+SAMPLE_OUTPUT_TEMPLATE = Template("output.$id.txt")
 DEFAULT_GROUPS_REGEX = Template(".*_($groups)")
 DEFAULT_EACH_TEST_REGEX = Template(".*${id}_$group")
 DEFAULT_SCORE_PARAMS_FILENAME = "score_params.txt"
@@ -232,7 +234,7 @@ def extract_output_only_tests(
 def extract_samples(
     selected_tests: list[tuple[str, ET.Element]], output_path: Path
 ) -> None:
-    """Create an archive of exact-group samples using converted Batch names.
+    """Create an archive of exact-group samples with sequential numeric names.
 
     Args:
         selected_tests: Tests from the exact requested samples group.
@@ -242,14 +244,18 @@ def extract_samples(
     samples_dir = output_path / DEFAULT_SAMPLES_DIR
     samples_dir.mkdir()
 
-    for test_id, test in selected_tests:
+    width = max(2, len(str(len(selected_tests))))
+    for sample_id, (test_id, test) in enumerate(selected_tests, start=1):
         group = test.get("group")
         if group is None:
             raise ValueError(f"Test {test_id} has no group")
         input_name = DEFAULT_CMS_INPUT_TEMPLATE.substitute(id=test_id, group=group)
         output_name = DEFAULT_CMS_OUTPUT_TEMPLATE.substitute(id=test_id, group=group)
-        shutil.copy2(cms_tests_dir / input_name, samples_dir / input_name)
-        shutil.copy2(cms_tests_dir / output_name, samples_dir / output_name)
+        sample_id_string = str(sample_id).zfill(width)
+        sample_input_name = SAMPLE_INPUT_TEMPLATE.substitute(id=sample_id_string)
+        sample_output_name = SAMPLE_OUTPUT_TEMPLATE.substitute(id=sample_id_string)
+        shutil.copy2(cms_tests_dir / input_name, samples_dir / sample_input_name)
+        shutil.copy2(cms_tests_dir / output_name, samples_dir / sample_output_name)
 
     shutil.make_archive(
         (output_path / DEFAULT_SAMPLES_ZIP_NAME).as_posix(),

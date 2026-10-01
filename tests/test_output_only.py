@@ -149,10 +149,14 @@ def test_generate_mixed_batch_and_output_only_archives(
 
     with ZipFile(output_path / "samples.zip") as archive:
         assert set(archive.namelist()) == {
-            f"{kind}.{test_id}_s1.txt"
+            f"{kind}.{sample_id:02}.txt"
             for kind in ("input", "output")
-            for test_id in range(4, 6)
+            for sample_id in range(1, 3)
         }
+        assert archive.read("input.01.txt") == (polygon_path / "tests/4").read_bytes()
+        assert (
+            archive.read("output.02.txt") == (polygon_path / "tests/5.a").read_bytes()
+        )
 
     with ZipFile(output_path / "tests.zip") as archive:
         assert "input.3_s1-OO.txt" in archive.namelist()
@@ -203,9 +207,9 @@ def test_generate_samples_for_batch_without_output_only(
 
     with ZipFile(output_path / "samples.zip") as archive:
         assert set(archive.namelist()) == {
-            f"{kind}.{test_id}_sample.txt"
+            f"{kind}.{sample_id:02}.txt"
             for kind in ("input", "output")
-            for test_id in range(1, 3)
+            for sample_id in range(1, 3)
         }
     assert output_only_score_params is None
     assert not (output_path / "output_only.zip").exists()
