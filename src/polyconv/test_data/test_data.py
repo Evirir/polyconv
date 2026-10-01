@@ -188,8 +188,9 @@ def extract_output_only_tests(
     output_only_dir.mkdir()
     attachment_dir.mkdir()
 
+    width = max(2, len(str(len(selected_tests))))
     for output_id, (polygon_id, _) in enumerate(selected_tests):
-        output_id_string = f"{output_id:02d}"
+        output_id_string = str(output_id).zfill(width)
         polygon_input = (
             polygon_path
             / POLYGON_TESTS_DIR

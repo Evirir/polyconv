@@ -102,8 +102,8 @@ def test_output_only_score_params_use_one_subtask_per_test() -> None:
     assert json.loads(score_params) == [[12, 1], [18, 1]]
 
 
-def test_output_only_numbering_continues_past_99(tmp_path: Path) -> None:
-    """Keep two-digit minimum padding without limiting larger indexes."""
+def test_output_only_numbering_uses_selected_test_count_width(tmp_path: Path) -> None:
+    """Pad every OutputOnly index to the selected test count's width."""
     polygon_path = tmp_path / "polygon"
     tests_path = polygon_path / "tests"
     tests_path.mkdir(parents=True)
@@ -111,15 +111,18 @@ def test_output_only_numbering_continues_past_99(tmp_path: Path) -> None:
     (tests_path / "1.a").write_text("output")
     output_path = tmp_path / "output"
     output_path.mkdir()
-    selected_tests = [("1", ET.Element("test", group="OO"))] * 101
+    selected_tests = [("1", ET.Element("test", group="OO"))] * 100
 
     extract_output_only_tests(selected_tests, polygon_path, output_path)
 
     with ZipFile(output_path / "output_only.zip") as archive:
-        assert "input.100.txt" in archive.namelist()
-        assert "output.100.txt" in archive.namelist()
+        assert "input.000.txt" in archive.namelist()
+        assert "output.000.txt" in archive.namelist()
+        assert "input.099.txt" in archive.namelist()
+        assert "output.099.txt" in archive.namelist()
     with ZipFile(output_path / "attachment.zip") as archive:
-        assert "input_100.txt" in archive.namelist()
+        assert "input_000.txt" in archive.namelist()
+        assert "input_099.txt" in archive.namelist()
 
 
 def test_generate_mixed_batch_and_output_only_archives(
