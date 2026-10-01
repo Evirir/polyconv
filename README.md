@@ -18,13 +18,13 @@ This code uses `problem.xml` in the Polygon **full** package (either Windows or 
 - Generate a **full** package on Polygon for your problem and download the Linux version.
 - Run `polyconv polygon_path`, where `polygon_path` is the path to the Polygon **full** package's root directory (where the folders `statements/` and `tests/` are). Add the `-f` flag to overwrite files if they exist.
 - A new folder `cms_out` will be created in `polygon_path` (this can be changed with `-o`) containing the following:
-  - A folder `tests/` containing renamed tests.
+  - A folder `tests/` containing renamed tests such as `input.01_group.txt` and `output.01_group.txt`.
   - A `.zip` file `tests.zip` with the contents in the `tests/` folder above.
   - A `score_params.txt` file with the Batch score parameters string. You should copy this to the Score Parameters field in CMS (use GroupMin score type).
 - To also extract OutputOnly tests, pass `--output-only SUBSTRING`. Any test whose group name contains `SUBSTRING` remains in the Batch files and is additionally written to:
-  - `output_only.zip`, using `input.XX.txt` and `output.XX.txt` names.
+  - `output_only.zip`, using extensionless `input.XX` and `output.XX` names.
   - `attachment.zip`, using input-only `input_XX.txt` names.
   - `output_only_score_params.txt`, with one GroupMin subtask per output file using that test's Polygon points.
   - Matching tests are ordered by their original Polygon test number and renumbered from `00`. IDs are padded to the selected test count's width, with a minimum of two digits.
-- To also create `samples.zip`, pass `--samples GROUP`. This uses exact group matching and preserves converted Batch names such as `input.01_sample` and `output.01_sample`.
+- To also create `samples.zip`, pass `--samples GROUP`. This uses exact group matching and preserves converted Batch names such as `input.01_sample.txt` and `output.01_sample.txt`.
 - The Batch score parameters and, when requested, OutputOnly score parameters will also be output to standard output.

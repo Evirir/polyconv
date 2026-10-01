@@ -116,10 +116,10 @@ def test_output_only_numbering_uses_selected_test_count_width(tmp_path: Path) ->
     extract_output_only_tests(selected_tests, polygon_path, output_path)
 
     with ZipFile(output_path / "output_only.zip") as archive:
-        assert "input.000.txt" in archive.namelist()
-        assert "output.000.txt" in archive.namelist()
-        assert "input.099.txt" in archive.namelist()
-        assert "output.099.txt" in archive.namelist()
+        assert "input.000" in archive.namelist()
+        assert "output.000" in archive.namelist()
+        assert "input.099" in archive.namelist()
+        assert "output.099" in archive.namelist()
     with ZipFile(output_path / "attachment.zip") as archive:
         assert "input_000.txt" in archive.namelist()
         assert "input_099.txt" in archive.namelist()
@@ -139,11 +139,9 @@ def test_generate_mixed_batch_and_output_only_archives(
     )
 
     with ZipFile(output_path / "output_only.zip") as archive:
-        assert set(archive.namelist()) == {"input.00.txt", "output.00.txt"}
-        assert archive.read("input.00.txt") == (polygon_path / "tests/3").read_bytes()
-        assert (
-            archive.read("output.00.txt") == (polygon_path / "tests/3.a").read_bytes()
-        )
+        assert set(archive.namelist()) == {"input.00", "output.00"}
+        assert archive.read("input.00") == (polygon_path / "tests/3").read_bytes()
+        assert archive.read("output.00") == (polygon_path / "tests/3.a").read_bytes()
 
     with ZipFile(output_path / "attachment.zip") as archive:
         assert archive.namelist() == ["input_00.txt"]
@@ -151,14 +149,14 @@ def test_generate_mixed_batch_and_output_only_archives(
 
     with ZipFile(output_path / "samples.zip") as archive:
         assert set(archive.namelist()) == {
-            f"{kind}.{test_id}_s1"
+            f"{kind}.{test_id}_s1.txt"
             for kind in ("input", "output")
             for test_id in range(4, 6)
         }
 
     with ZipFile(output_path / "tests.zip") as archive:
-        assert "input.3_s1-OO" in archive.namelist()
-        assert "output.3_s1-OO" in archive.namelist()
+        assert "input.3_s1-OO.txt" in archive.namelist()
+        assert "output.3_s1-OO.txt" in archive.namelist()
 
     parsed_score_params = json.loads(score_params)
     assert parsed_score_params[0] == [0, ".*_(s1|s1-OO)"]
@@ -205,7 +203,7 @@ def test_generate_samples_for_batch_without_output_only(
 
     with ZipFile(output_path / "samples.zip") as archive:
         assert set(archive.namelist()) == {
-            f"{kind}.{test_id}_sample"
+            f"{kind}.{test_id}_sample.txt"
             for kind in ("input", "output")
             for test_id in range(1, 3)
         }
